@@ -1,143 +1,178 @@
-loadstring([[ 
--- tnghia hub v4.2 - Fixed Font
-local p = game.Players.LocalPlayer
-local gui = Instance.new("ScreenGui") gui.ResetOnSpawn = false gui.Parent = p:WaitForChild("PlayerGui")
+--[[
+    =============================================
+    Roblox FPS + Ping Display (Minecraft Style)
+    + Performance Optimizer (Fix Lag + Bright)
+    =============================================
+    Author: YourName / Thành Nghĩa
+    Version: 1.2
+    Last Updated: 2026
+    Description: Hiển thị FPS + Ping kiểu Minecraft + Tối ưu FPS mạnh
+    =============================================
+]]
 
-local settings = getgenv().tnghiaHub or {}
-getgenv().tnghiaHub = settings
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
 
-local hide = settings.Hide or true
-local black = settings.Black or false
-local perf = settings.Perf or false
-local menuVisible = true
+local lp = Players.LocalPlayer
 
-local bs = Instance.new("Frame", gui)
-bs.Size = UDim2.new(1,0,1,0)
-bs.BackgroundColor3 = Color3.new(0,0,0)
-bs.BackgroundTransparency = black and 0 or 1
-bs.Visible = black
-bs.ZIndex = -1
+-- ====================== CẤU HÌNH ======================
+local CONFIG = {
+    UpdateInterval = 5,                    -- Giây cập nhật một lần
+    Font = Enum.Font.Arcade,
+    TextSize = 28,
+    Position = UDim2.new(0, 10, 0, 10),   -- Góc trái trên
+    Size = UDim2.new(0, 240, 0, 90),
+    BackgroundTransparency = 0.35,
+    MinecraftYellow = Color3.fromRGB(255, 255, 85),
+}
 
-local f = Instance.new("Frame", gui)
-f.Size = UDim2.new(0, 290, 0, 320)
-f.Position = UDim2.new(0, 25, 0.5, -160)
-f.BackgroundColor3 = Color3.fromRGB(15,15,20)
-f.Active = true
-f.Draggable = true
+-- ====================== FIX LAG + BRIGHT ======================
+local function ApplyPerformanceOptimizations()
+    -- Quality
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
 
-Instance.new("UICorner", f).CornerRadius = UDim.new(0,14)
-local grad = Instance.new("UIGradient", f)
-grad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(30,30,45)), ColorSequenceKeypoint.new(1, Color3.fromRGB(15,15,25))}
-Instance.new("UIStroke", f).Thickness = 1.5; Instance.new("UIStroke", f).Color = Color3.fromRGB(0,255,200)
+    -- Lighting
+    pcall(function()
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 1e10
+        Lighting.Brightness = 2
+        Lighting.ExposureCompensation = 0.4
+        Lighting.Ambient = Color3.fromRGB(160, 160, 160)
+        Lighting.OutdoorAmbient = Color3.fromRGB(160, 160, 160)
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale = 0
+    end)
 
-local logoHub = Instance.new("ImageLabel", f)
-logoHub.Size = UDim2.new(0,85,0,85)
-logoHub.Position = UDim2.new(0,20,0,15)
-logoHub.BackgroundTransparency = 1
-logoHub.Image = "rbxassetid://16597012603"
-logoHub.ImageColor3 = Color3.fromRGB(0,255,220)
+    -- Remove unnecessary effects
+    for _, v in pairs(Lighting:GetChildren()) do
+        if v:IsA("PostEffect") or v:IsA("Sky") then
+            v:Destroy()
+        end
+    end
 
-local title = Instance.new("TextLabel", f)
-title.Size = UDim2.new(1,-120,0,50)
-title.Position = UDim2.new(0,115,0,25)
-title.BackgroundTransparency = 1
-title.Text = "tnghia hub"
-title.TextColor3 = Color3.fromRGB(0,255,200)
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
+    -- Optimize workspace
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Material = Enum.Material.SmoothPlastic
+            v.Reflectance = 0
+            v.CastShadow = false
+        elseif v:IsA("MeshPart") then
+            v.TextureID = ""
+            v.RenderFidelity = Enum.RenderFidelity.Performance
+        elseif v:IsA("UnionOperation") then
+            v.UsePartColor = true
+        elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance") then
+            v:Destroy()
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") or
+               v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+            v.Enabled = false
+        elseif v:IsA("Explosion") then
+            v.Visible = false
+        elseif v:IsA("Highlight") then
+            v:Destroy()
+        end
+    end
 
-local acc = Instance.new("TextLabel", f)
-acc.Size = UDim2.new(1,-120,0,22)
-acc.Position = UDim2.new(0,115,0,70)
-acc.BackgroundTransparency = 1
-acc.Text = "👤 " .. p.Name
-acc.TextColor3 = Color3.fromRGB(170,170,255)
-acc.TextScaled = true
-acc.Font = Enum.Font.GothamSemibold
-
-local toggleBtn = Instance.new("ImageButton", gui)
-toggleBtn.Size = UDim2.new(0, 60, 0, 60)
-toggleBtn.Position = UDim2.new(0, 30, 0, 30)
-toggleBtn.BackgroundTransparency = 1
-toggleBtn.Image = "rbxassetid://16597012603"
-toggleBtn.ImageColor3 = Color3.fromRGB(0, 255, 200)
-Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 30)
-Instance.new("UIStroke", toggleBtn).Thickness = 2
-Instance.new("UIStroke", toggleBtn).Color = Color3.fromRGB(0, 255, 255)
-
-toggleBtn.MouseButton1Click:Connect(function()
-    menuVisible = not menuVisible
-    f.Visible = menuVisible
-    toggleBtn.ImageColor3 = menuVisible and Color3.fromRGB(0, 255, 200) or Color3.fromRGB(100, 100, 100)
-end)
-
-local function createBtn(y, text, colorOn)
-    local btn = Instance.new("TextButton", f)
-    btn.Size = UDim2.new(0.88,0,0,42)
-    btn.Position = UDim2.new(0.06,0,y,0)
-    btn.BackgroundColor3 = colorOn
-    btn.Text = text
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.TextScaled = true
-    btn.Font = Enum.Font.GothamBold
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
-    return btn
+    -- Mute sounds
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("Sound") then
+            v.Volume = 0
+            v.Playing = false
+        end
+    end
 end
 
-local bHide = createBtn(105, "🗺️ Hide Map: " .. (hide and "ON" or "OFF"), hide and Color3.fromRGB(0,200,100) or Color3.fromRGB(200,50,50))
-local bBlack = createBtn(155, "🌑 Black Screen: " .. (black and "ON" or "OFF"), black and Color3.fromRGB(0,170,100) or Color3.fromRGB(170,50,50))
-local bPerf = createBtn(205, "⚡ Tăng FPS: " .. (perf and "ON" or "OFF"), perf and Color3.fromRGB(0,170,100) or Color3.fromRGB(170,50,50))
+-- Ẩn Head & Accessories
+local function HideSelf(char)
+    for _, v in pairs(char:GetDescendants()) do
+        if v:IsA("BasePart") and v.Name == "Head" then
+            v.Transparency = 1
+            if v:FindFirstChild("face") then
+                v.face.Transparency = 1
+            end
+        elseif v:IsA("Accessory") then
+            v:Destroy()
+        end
+    end
+end
 
-bHide.MouseButton1Click:Connect(function()
-    hide = not hide
-    bHide.Text = "🗺️ Hide Map: " .. (hide and "ON" or "OFF")
-    bHide.BackgroundColor3 = hide and Color3.fromRGB(0,200,100) or Color3.fromRGB(200,50,50)
-    settings.Hide = hide
-    for _,v in workspace:GetDescendants() do pcall(function() if v:IsA("BasePart") or v:IsA("MeshPart") then v.Transparency = hide and 1 or 0 end end) end
-end)
+-- ====================== CREATE HUD ======================
+local function CreateHUD()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MinecraftFPSHUD"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = lp:WaitForChild("PlayerGui")
 
-bBlack.MouseButton1Click:Connect(function()
-    black = not black
-    bBlack.Text = "🌑 Black Screen: " .. (black and "ON" or "OFF")
-    bBlack.BackgroundColor3 = black and Color3.fromRGB(0,170,100) or Color3.fromRGB(170,50,50)
-    bs.Visible = black
-    bs.BackgroundTransparency = black and 0 or 1
-    settings.Black = black
-end)
+    local fpsLabel = Instance.new("TextLabel")
+    fpsLabel.Name = "FPSLabel"
+    fpsLabel.Parent = screenGui
+    fpsLabel.Position = CONFIG.Position
+    fpsLabel.Size = CONFIG.Size
+    fpsLabel.BackgroundTransparency = CONFIG.BackgroundTransparency
+    fpsLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    fpsLabel.TextStrokeTransparency = 0
+    fpsLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    fpsLabel.RichText = true
+    fpsLabel.Font = CONFIG.Font
+    fpsLabel.TextSize = CONFIG.TextSize
+    fpsLabel.Text = "FPS: --\nPing: --ms"
 
-bPerf.MouseButton1Click:Connect(function()
-    perf = not perf
-    bPerf.Text = "⚡ Tăng FPS: " .. (perf and "ON" or "OFF")
-    bPerf.BackgroundColor3 = perf and Color3.fromRGB(0,170,100) or Color3.fromRGB(170,50,50)
-    settings.Perf = perf
-    if perf then pcall(function() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 game.Lighting.GlobalShadows = false game.Lighting.FogEnd = 999999 end) end
-end)
+    return fpsLabel
+end
 
-local fps = Instance.new("TextLabel", f)
-fps.Size = UDim2.new(0.88,0,0,48)
-fps.Position = UDim2.new(0.06,0,0,255)
-fps.BackgroundTransparency = 0.8
-fps.BackgroundColor3 = Color3.fromRGB(10,10,15)
-fps.TextScaled = true
-fps.Font = Enum.Font.GothamBold
-fps.TextColor3 = Color3.fromRGB(255,255,255)
-Instance.new("UICorner", fps).CornerRadius = UDim.new(0,10)
+-- ====================== MAIN ======================
+local function Main()
+    ApplyPerformanceOptimizations()
 
-local colors = {255,0,0,255,165,0,255,255,0,0,255,0,0,255,255,0,0,255}
-task.spawn(function()
-    local i=1 while true do fps.TextColor3 = Color3.fromRGB(colors[i],colors[i+1],colors[i+2]) i=(i+2)%#colors+1 task.wait(0.17) end
-end)
+    -- Hide character
+    if lp.Character then HideSelf(lp.Character) end
+    lp.CharacterAdded:Connect(function(c)
+        task.wait(0.3)
+        HideSelf(c)
+    end)
 
-local st = tick()
-game:GetService("RunService").RenderStepped:Connect(function(dt)
-    local e = math.floor(tick()-st)
-    fps.Text = string.format("FPS: %d\nTIME: %02d:%02d:%02d", math.floor(1/dt), e//3600, (e%3600)//60, e%60)
-end)
+    local fpsLabel = CreateHUD()
 
-task.spawn(function() while true do task.wait(300) local h = p.Character and p.Character:FindFirstChildOfClass("Humanoid") if h and h.Health > 0 then h.Jump = true end end end)
+    local frames = 0
+    local lastTime = tick()
 
-for _,v in workspace:GetDescendants() do pcall(function() if v:IsA("BasePart") or v:IsA("MeshPart") then v.Transparency = hide and 1 or 0 end end) end
+    RunService.RenderStepped:Connect(function()
+        frames += 1
+        local currentTime = tick()
 
-game.StarterGui:SetCore("SendNotification", {Title="tnghia hub v4.2"; Text="Đã fix lỗi font!\nNhấn logo để ẩn/hiện menu."; Duration=7;})
-print("✅ tnghia hub v4.2 Loaded!")
-]])()
+        if currentTime - lastTime >= CONFIG.UpdateInterval then
+            local fps = math.floor(frames / CONFIG.UpdateInterval)
+
+            -- Get Ping
+            local ping = 0
+            local pingStat = Stats.Network.ServerStatsItem("Data Ping")
+            if pingStat then
+                ping = math.floor(pingStat:GetValue())
+            end
+
+            -- Color
+            local fpsColor = "#55FF55"
+            if fps < 30 then
+                fpsColor = "#FF5555"
+            elseif fps < 55 then
+                fpsColor = "#FFFF55"
+            end
+
+            fpsLabel.Text = string.format(
+                '<font color="%s">FPS: %d</font>\n<font color="#FFAA00">Ping: %dms</font>',
+                fpsColor, fps, ping
+            )
+
+            frames = 0
+            lastTime = currentTime
+        end
+    end)
+end
+
+-- Run
+Main()
