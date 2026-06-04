@@ -1,4 +1,4 @@
-loadstring([[ 
+-- tnghia hub
 for _,v in next,workspace:GetDescendants()do pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end
 for _,v in next,getnilinstances()do pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end
 workspace.DescendantAdded:Connect(function(v)pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end)
@@ -18,4 +18,3 @@ local s=tick()game:GetService("RunService").RenderStepped:Connect(function(dt)lo
 task.spawn(function()while true do task.wait(300)local h=p.Character and p.Character:FindFirstChildOfClass("Humanoid")if h and h.Health>0 then h.Jump=true end end end)
 
 print("✅ tnghia hub Loaded!")
-]])()
