@@ -1,5 +1,5 @@
 loadstring([[ 
--- tnghia hub v4.2 - Nút Toggle là Logo 1
+-- tnghia hub v4.2 - Fixed Font
 local p = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui") gui.ResetOnSpawn = false gui.Parent = p:WaitForChild("PlayerGui")
 
@@ -40,7 +40,7 @@ logoHub.BackgroundTransparency = 1
 logoHub.Image = "rbxassetid://16597012603"
 logoHub.ImageColor3 = Color3.fromRGB(0,255,220)
 
--- Title
+-- Title (Sửa font)
 local title = Instance.new("TextLabel", f)
 title.Size = UDim2.new(1,-120,0,50)
 title.Position = UDim2.new(0,115,0,25)
@@ -48,7 +48,7 @@ title.BackgroundTransparency = 1
 title.Text = "tnghia hub"
 title.TextColor3 = Color3.fromRGB(0,255,200)
 title.TextScaled = true
-title.Font = Enum.Font.ArcaneBold
+title.Font = Enum.Font.GothamBold   -- Sửa thành GothamBold
 
 local acc = Instance.new("TextLabel", f)
 acc.Size = UDim2.new(1,-120,0,22)
@@ -148,6 +148,6 @@ task.spawn(function() while true do task.wait(300) local h = p.Character and p.C
 -- Initial Apply
 for _,v in workspace:GetDescendants() do pcall(function() if v:IsA("BasePart") or v:IsA("MeshPart") then v.Transparency = hide and 1 or 0 end end) end
 
-game.StarterGui:SetCore("SendNotification", {Title="tnghia hub v4.2"; Text="Nút toggle là Logo 1!\nNhấn logo để ẩn/hiện menu."; Duration=7;})
-print("✅ tnghia hub v4.2 Loaded!")
+game.StarterGui:SetCore("SendNotification", {Title="tnghia hub v4.2"; Text="Đã fix lỗi font!\nNhấn logo để ẩn/hiện menu."; Duration=7;})
+print("✅ tnghia hub v4.2 Fixed & Loaded!")
 ]])()
