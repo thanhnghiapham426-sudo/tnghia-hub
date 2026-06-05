@@ -1,119 +1,20 @@
---[[
-    Minecraft FPS + Ping + Ultra Fix Lag
-    Version: 1.2
-    Tối ưu cho GitHub
-]]
+-- tnghia hub
+for _,v in next,workspace:GetDescendants()do pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end
+for _,v in next,getnilinstances()do pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end
+workspace.DescendantAdded:Connect(function(v)pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end)
 
-local Players = game:GetService("Players")
-local Lighting = game:GetService("Lighting")
-local RunService = game:GetService("RunService")
-local Stats = game:GetService("Stats")
+local p=game.Players.LocalPlayer
+local g=Instance.new("ScreenGui")g.ResetOnSpawn=false g.Parent=p:WaitForChild("PlayerGui")
 
-local lp = Players.LocalPlayer
+local t=Instance.new("TextLabel")t.Size=UDim2.new(0,200,0,30)t.Position=UDim2.new(0,15,0,15)t.BackgroundTransparency=0.3 t.BackgroundColor3=Color3.fromRGB(0,0,0)t.Text="tnghia hub"t.TextColor3=Color3.fromRGB(0,255,255)t.TextScaled=true t.Font=Enum.Font.GothamBold t.Active=true t.Draggable=true t.Parent=g
 
--- ====================== CONFIG ======================
-local CONFIG = {
-    UpdateInterval = 5,
-    Position = UDim2.new(0, 15, 0, 15),
-    Size = UDim2.new(0, 240, 0, 90),
-}
+local l=Instance.new("TextLabel")l.Size=UDim2.new(0,200,0,70)l.Position=UDim2.new(0,15,0,45)l.BackgroundTransparency=0.35 l.BackgroundColor3=Color3.fromRGB(0,0,0)l.TextScaled=true l.Font=Enum.Font.GothamBold l.TextColor3=Color3.fromRGB(255,255,255)l.Active=true l.Draggable=true l.Parent=g
 
--- ====================== FIX LAG + BRIGHT ======================
-pcall(function()
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-end)
+local c={255,0,0,255,165,0,255,255,0,0,255,0,0,255,255,0,0,255,128,0,128}
+task.spawn(function()local i=1 while true do l.TextColor3=Color3.fromRGB(c[i],c[i+1],c[i+2])i=(i+2)%#c+1 task.wait(0.25)end end)
 
-pcall(function()
-    Lighting.GlobalShadows = false
-    Lighting.FogEnd = 1e10
-    Lighting.Brightness = 2
-    Lighting.ExposureCompensation = 0.4
-    Lighting.Ambient = Color3.fromRGB(160,160,160)
-    Lighting.OutdoorAmbient = Color3.fromRGB(160,160,160)
-end)
+local s=tick()game:GetService("RunService").RenderStepped:Connect(function(dt)local e=math.floor(tick()-s)l.Text=string.format("FPS: %d\nTIME: %02d:%02d:%02d",math.floor(1/dt),e//3600,(e%3600)//60,e%60)end)
 
--- Xóa hiệu ứng thừa
-for _, v in pairs(Lighting:GetChildren()) do
-    if v:IsA("PostEffect") or v:IsA("Sky") then
-        v:Destroy()
-    end
-end
+task.spawn(function()while true do task.wait(300)local h=p.Character and p.Character:FindFirstChildOfClass("Humanoid")if h and h.Health>0 then h.Jump=true end end end)
 
-for _, v in pairs(workspace:GetDescendants()) do
-    if v:IsA("BasePart") then
-        v.Material = Enum.Material.SmoothPlastic
-        v.Reflectance = 0
-        v.CastShadow = false
-    elseif v:IsA("MeshPart") then
-        v.TextureID = ""
-        v.RenderFidelity = Enum.RenderFidelity.Performance
-    elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance") then
-        v:Destroy()
-    elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") or
-           v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
-        v.Enabled = false
-    end
-end
-
--- ====================== MINECRAFT FPS + PING ======================
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MinecraftFPS"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = lp:WaitForChild("PlayerGui")
-
-local fpsLabel = Instance.new("TextLabel")
-fpsLabel.Name = "FPSLabel"
-fpsLabel.Parent = screenGui
-fpsLabel.Position = CONFIG.Position
-fpsLabel.Size = CONFIG.Size
-fpsLabel.BackgroundTransparency = 0.35
-fpsLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-fpsLabel.TextStrokeTransparency = 0
-fpsLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
-fpsLabel.RichText = true
-fpsLabel.Font = Enum.Font.Arcade
-fpsLabel.TextSize = 28
-fpsLabel.Text = "FPS: --\nPing: --ms"
-
-local frames = 0
-local lastTime = tick()
-
-RunService.RenderStepped:Connect(function()
-    frames += 1
-    if tick() - lastTime >= CONFIG.UpdateInterval then
-        local fps = math.floor(frames / CONFIG.UpdateInterval)
-        
-        local ping = 0
-        local pingStat = Stats.Network.ServerStatsItem("Data Ping")
-        if pingStat then
-            ping = math.floor(pingStat:GetValue())
-        end
-
-        local fpsColor = fps >= 55 and "#55FF55" or (fps >= 30 and "#FFFF55" or "#FF5555")
-
-        fpsLabel.Text = string.format(
-            '<font color="%s">FPS: %d</font>\n<font color="#FFAA00">Ping: %dms</font>',
-            fpsColor, fps, ping
-        )
-
-        frames = 0
-        lastTime = tick()
-    end
-end)
-
--- Ẩn Head
-local function HideHead(char)
-    task.wait(0.3)
-    for _, v in pairs(char:GetDescendants()) do
-        if v.Name == "Head" and v:IsA("BasePart") then
-            v.Transparency = 1
-            if v:FindFirstChild("face") then v.face.Transparency = 1 end
-        end
-    end
-end
-
-if lp.Character then HideHead(lp.Character) end
-lp.CharacterAdded:Connect(HideHead)
-
-print("✅ Minecraft FPS + Fix Lag Loaded!")
+print("✅ tnghia hub Loaded!")
