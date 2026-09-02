@@ -1,20 +1,50 @@
--- tnghia hub
-for _,v in next,workspace:GetDescendants()do pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end
-for _,v in next,getnilinstances()do pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end
-workspace.DescendantAdded:Connect(function(v)pcall(function()if v:IsA("BasePart")or v:IsA("MeshPart")then v.Transparency=1 end end)end)
+local RS, Stats, Plrs, VU = game:GetService("RunService"), game:GetService("Stats"), game:GetService("Players"), game:GetService("VirtualUser")
+local LP = Plrs.LocalPlayer
 
-local p=game.Players.LocalPlayer
-local g=Instance.new("ScreenGui")g.ResetOnSpawn=false g.Parent=p:WaitForChild("PlayerGui")
+-- UI Chính
+local gui = Instance.new("ScreenGui", LP:WaitForChild("PlayerGui"))
+gui.Name, gui.ResetOnSpawn, gui.IgnoreGuiInset = "BlackScreenUI", false, true
 
-local t=Instance.new("TextLabel")t.Size=UDim2.new(0,200,0,30)t.Position=UDim2.new(0,15,0,15)t.BackgroundTransparency=0.3 t.BackgroundColor3=Color3.fromRGB(0,0,0)t.Text="tnghia hub"t.TextColor3=Color3.fromRGB(0,255,255)t.TextScaled=true t.Font=Enum.Font.GothamBold t.Active=true t.Draggable=true t.Parent=g
+-- Màn hình đen
+local frame = Instance.new("Frame", gui)
+frame.Size, frame.BackgroundColor3, frame.BorderSizePixel, frame.ZIndex = UDim2.new(1, 0, 1, 0), Color3.fromRGB(0, 0, 0), 0, 1
 
-local l=Instance.new("TextLabel")l.Size=UDim2.new(0,200,0,70)l.Position=UDim2.new(0,15,0,45)l.BackgroundTransparency=0.35 l.BackgroundColor3=Color3.fromRGB(0,0,0)l.TextScaled=true l.Font=Enum.Font.GothamBold l.TextColor3=Color3.fromRGB(255,255,255)l.Active=true l.Draggable=true l.Parent=g
+-- Nút Bật/Tắt (Hình tròn)
+local btn = Instance.new("TextButton", gui)
+btn.Size, btn.Position, btn.BackgroundColor3, btn.BorderSizePixel, btn.TextColor3, btn.Text, btn.TextSize, btn.Font, btn.ZIndex = UDim2.new(0, 36, 0, 36), UDim2.new(0, 15, 0, 110), Color3.fromRGB(0, 170, 100), 0, Color3.fromRGB(255, 255, 255), "ON", 12, Enum.Font.SourceSansBold, 2
 
-local c={255,0,0,255,165,0,255,255,0,0,255,0,0,255,255,0,0,255,128,0,128}
-task.spawn(function()local i=1 while true do l.TextColor3=Color3.fromRGB(c[i],c[i+1],c[i+2])i=(i+2)%#c+1 task.wait(0.25)end end)
+local btnCorner = Instance.new("UICorner", btn)
+btnCorner.CornerRadius = UDim.new(1, 0)
 
-local s=tick()game:GetService("RunService").RenderStepped:Connect(function(dt)local e=math.floor(tick()-s)l.Text=string.format("FPS: %d\nTIME: %02d:%02d:%02d",math.floor(1/dt),e//3600,(e%3600)//60,e%60)end)
+-- Bảng FPS & Ping
+local txt = Instance.new("TextLabel", gui)
+txt.Size, txt.Position, txt.BackgroundColor3, txt.BackgroundTransparency, txt.BorderSizePixel, txt.Font, txt.TextSize, txt.ZIndex = UDim2.new(0, 135, 0, 30), UDim2.new(0, 56, 0, 113), Color3.fromRGB(15, 15, 15), 0.3, 0, Enum.Font.SourceSansBold, 13, 2
 
-task.spawn(function()while true do task.wait(300)local h=p.Character and p.Character:FindFirstChildOfClass("Humanoid")if h and h.Health>0 then h.Jump=true end end end)
+local txtCorner = Instance.new("UICorner", txt)
+txtCorner.CornerRadius = UDim.new(0, 6)
 
-print("✅ tnghia hub Loaded!")
+-- Toggle Màn Đen
+btn.MouseButton1Click:Connect(function()
+    frame.Visible = not frame.Visible
+    btn.Text = frame.Visible and "OFF" or "ON"
+    btn.BackgroundColor3 = frame.Visible and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(0, 170, 100)
+end)
+
+-- Anti-AFK
+LP.Idled:Connect(function() VU:CaptureController() VU:ClickButton2(Vector2.zero) end)
+
+-- Loop FPS, Ping & RGB 7 màu
+local hue, frames, last = 0, 0, os.clock()
+RS.RenderStepped:Connect(function(dt)
+    hue = (hue + dt * 0.2) % 1
+    txt.TextColor3 = Color3.fromHSV(hue, 1, 1)
+    
+    frames = frames + 1
+    local now = os.clock()
+    if now - last >= 0.5 then
+        local fps = math.floor(frames / (now - last))
+        local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        txt.Text = string.format("FPS: %d | Ping: %d ms", fps, ping)
+        frames, last = 0, now
+    end
+end)
